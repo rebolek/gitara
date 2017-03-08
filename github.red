@@ -374,9 +374,9 @@ get-reference: function [
 ; --- 
 
 comment {
-    List issues
-    List issues for a repository
-    Get a single issue
+    List issues 					- GET-ISSUES
+    List issues for a repository 	- GET-ISSUES
+    Get a single issue 				- GET-ISSUE
     Create an issue
     Edit an issue
     Lock an issue
@@ -447,6 +447,13 @@ get-issues: function [
 	] [
 		third ret
 	]
+]
+
+get-issue: function [
+	repo
+	number
+] [
+	send [%repos repo %issues number]
 ]
 
 ; --- tools
