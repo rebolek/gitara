@@ -2,6 +2,9 @@ Red [
 	Title: "GitHub API implementation"
 	Author: "Boleslav Březovský"
 	Date: "5-3-2017"
+	Usage: {
+You must set GITHUB/USER and GITHUB/PASS to your username and password.
+	}
 ]
 
 do %json.red
@@ -377,10 +380,10 @@ comment {
     List issues 					- GET-ISSUES
     List issues for a repository 	- GET-ISSUES
     Get a single issue 				- GET-ISSUE
-    Create an issue
-    Edit an issue
-    Lock an issue
-    Unlock an issue
+    Create an issue 				- MAKE-ISSUE
+    Edit an issue 					- EDIT-ISSUE ; TODO: needs PATCH
+    Lock an issue 					- TODO: needs PUT
+    Unlock an issue 				- TODO: needs DELETE
     Custom media types
 
 
@@ -427,6 +430,7 @@ get-issues: function [
 		filter
 ] [ 
 	count: none
+	filter: copy []
 	link: copy case [
 		user 	[[%issues]]
 		org 	[[%orgs org-name %issues]]
@@ -454,6 +458,97 @@ get-issue: function [
 	number
 ] [
 	send [%repos repo %issues number]
+]
+
+comment {
+		title 		string 				Required. The title of the issue.
+		body 		string 				The contents of the issue.
+		assignee 	string 				Login for the user that this issue should be assigned to. NOTE: Only users with push access can set the assignee for new issues. The assignee is silently dropped otherwise. This field is deprecated.
+		milestone 	integer 			The number of the milestone to associate this issue with. NOTE: Only users with push access can set the milestone for new issues. The milestone is silently dropped otherwise.
+		labels 		array of strings 	Labels to associate with this issue. NOTE: Only users with push access can set labels for new issues. Labels are silently dropped otherwise.
+		assignees 	array of strings 	Logins for Users to assign to this issue. NOTE: Only users with push access can set assignees for new issues. Assignees are silently dropped otherwise.
+}
+
+make-issue: function [
+	repo
+	title
+	body
+	/assignee
+		names [string! block!]
+	/label
+		labels
+	/milestone
+		milestone-id
+
+] [
+	; POST /repos/:owner/:repo/issues
+	header: reduce [
+		quote title: title
+		quote body: body
+	]
+	names: trim reduce [names]
+	case/all [
+		1 = length? names 	(repend header [quote assignee: first names])
+		1 < length? names 	(repend header [quote assignees: names])
+		label 				(repend header [quote label: labels])
+		milestone 			(repend header [quote milestone: milestone-id])
+	]
+	send/type [%repos repo %issues] 'POST header
+]
+
+comment {
+		title 		string 				The title of the issue.
+		body 		string 				The contents of the issue.
+		assignee 	string 				Login for the user that this issue should be assigned to. This field is deprecated.
+		state 		string 				State of the issue. Either open or closed.
+		milestone 	integer 			The number of the milestone to associate this issue with or null to remove current. NOTE: Only users with push access can set the milestone for issues. The milestone is silently dropped otherwise.
+		labels 		array of strings 	Labels to associate with this issue. Pass one or more Labels to replace the set of Labels on this Issue. Send an empty array ([]) to clear all Labels from the Issue. NOTE: Only users with push access can set labels for issues. Labels are silently dropped otherwise.
+		assignees 	array of strings 	Logins for Users to assign to this issue. Pass one or more user logins to replace the set of assignees on this Issue. Send an empty array ([]) to clear all assignees from the Issue. NOTE: Only users with push access can set assignees for new issues. Assignees are silently dropped otherwise.
+}
+
+edit-issue: function [
+	; TODO: needs PATCH
+] [
+	; PATCH /repos/:owner/:repo/issues/:number
+]
+
+; --- REPOSITORIES
+
+comment {
+	List your repositories 			- LIST-REPO
+	List user repositories 			- LIST-REPO/BY user
+	List organization repositories 	- LIST-REPO/BY org
+	List all public repositories 	- LIST-REPO/ALL
+	Create 							- MAKE-REPO
+	Get 							- GET-REPO
+	Edit 							- EDIT-REPO
+	List contributors
+	List languages
+	List Teams
+	List Tags
+	Delete a Repository
+}
+
+comment {
+	LIST-REPO parameters:
+
+		visibility 		string 	Can be one of all, public, or private. Default: all
+		affiliation 	string 	Comma-separated list of values. Can include:
+									* owner: Repositories that are owned by the authenticated user.
+									* collaborator: Repositories that the user has been added to as a collaborator.
+									* organization_member: Repositories that the user has access to through being a member of an organization. This includes every repository on every team that the user is on.
+								Default: owner,collaborator,organization_member
+		type 			string 	Can be one of all, owner, public, private, member. Default: all
+								Will cause a 422 error if used in the same request as visibility or affiliation.
+		sort 			string 	Can be one of created, updated, pushed, full_name. Default: full_name
+		direction 		string 	Can be one of asc or desc. Default: when using full_name: asc; otherwise desc	
+
+}
+
+list-repo: function [
+
+] [
+
 ]
 
 ; --- tools
