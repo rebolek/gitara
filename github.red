@@ -59,7 +59,7 @@ map: function [
 		|	skip	
 		]
 	]
-	make map! probe reduce data
+	make map! reduce data
 ]
 
 json-map: func [
@@ -116,7 +116,7 @@ send: func [
 		insert last header-data [Content-Type: "application/json"]
 		append header-data json/encode request
 	]
-	raw: write/info probe link probe header-data
+	raw: write/info link header-data
 	response: first json/decode raw/3
 	either header [raw] [response]
 ]
@@ -619,6 +619,19 @@ commit: func [
 
 ]
 
+
+; some user functions:
+
+load-gist: function [
+	"Load Gist as Red file"
+	id
+] [
+	; NOTE: this expects that gist is one file only and does the first file
+	;		should be user-configurable somehow probably
+	if url? id [id: last split id #"/"]
+	gist: github/get-gist id
+	load select select gist first keys-of gist 'content
+]
 
 
 
