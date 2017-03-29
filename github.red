@@ -77,7 +77,7 @@ send: func [
 	/type "Send different request type (POST, PUT, ...)"
 		req-type
 		request
-	/header "Return all data"
+	/header "Return raw data" ; TODO: rename
 	/local value link args-rule header-data
 ] [
 	type: either type [req-type] ['GET]
@@ -117,8 +117,8 @@ send: func [
 		append header-data json/encode request
 	]
 	raw: write/info probe link probe header-data
-	raw/3: first json/decode raw/3
-	either header [raw] [raw/3]
+	response: first json/decode raw/3
+	either header [raw] [response]
 ]
 
 ; ---------------------------------
@@ -449,7 +449,8 @@ get-issues: function [
 		parse ret/2/link [thru "next" thru "page=" copy count to #">"] 
 		to integer! count
 	] [
-		third ret
+	;	third ret
+		response
 	]
 ]
 
